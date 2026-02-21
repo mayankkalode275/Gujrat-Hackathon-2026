@@ -27,42 +27,49 @@ const Layout = () => {
 
           <nav className="nav flex-column">
 
+            {/* Dashboard - All */}
             <NavLink className="nav-link text-light" to="/dashboard">
               Dashboard
             </NavLink>
 
-            {role === "Manager" && (
-              <>
-                <NavLink className="nav-link text-light" to="/vehicles">
-                  Vehicles
-                </NavLink>
-                <NavLink className="nav-link text-light" to="/maintenance">
-                  Maintenance
-                </NavLink>
-              </>
-            )}
+            {/* Vehicles - All */}
+            <NavLink className="nav-link text-light" to="/vehicles">
+              Vehicles
+            </NavLink>
 
-            {role === "Dispatcher" && (
+            {/* Drivers - All */}
+            <NavLink className="nav-link text-light" to="/drivers">
+              Drivers
+            </NavLink>
+
+            {/* Trips - Manager, Dispatcher, Finance */}
+            {(role === "Manager" ||
+              role === "Dispatcher" ||
+              role === "Finance") && (
               <NavLink className="nav-link text-light" to="/trips">
-                Dispatch
+                Trips
               </NavLink>
             )}
 
-            {(role === "Manager" || role === "Safety") && (
-              <NavLink className="nav-link text-light" to="/drivers">
-                Drivers
+            {/* Expenses - Manager & Finance */}
+            {(role === "Manager" || role === "Finance") && (
+              <NavLink className="nav-link text-light" to="/expenses">
+                Expenses
               </NavLink>
             )}
 
+            {/* Maintenance - Finance Only */}
             {role === "Finance" && (
-              <>
-                <NavLink className="nav-link text-light" to="/expenses">
-                  Expenses
-                </NavLink>
-                <NavLink className="nav-link text-light" to="/analytics">
-                  Analytics
-                </NavLink>
-              </>
+              <NavLink className="nav-link text-light" to="/maintenance">
+                Maintenance
+              </NavLink>
+            )}
+
+            {/* Analytics - Finance Only */}
+            {role === "Finance" && (
+              <NavLink className="nav-link text-light" to="/analytics">
+                Analytics
+              </NavLink>
             )}
 
           </nav>
