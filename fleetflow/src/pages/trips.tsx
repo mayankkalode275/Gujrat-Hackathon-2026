@@ -3,57 +3,121 @@ import { FleetContext } from "../context/FleetContext";
 
 const Trips = () => {
   const fleet = useContext(FleetContext);
+
   const [vehicleId, setVehicleId] = useState("");
   const [driverId, setDriverId] = useState("");
   const [cargoWeight, setCargoWeight] = useState("");
 
-  if (!fleet) return <div>Loading...</div>;
+  if (!fleet) {
+    return <div className="p-4 text-light">Loading trips...</div>;
+  }
 
-  const availableVehicles = fleet.vehicles.filter(v => v.status === "Available");
-  const activeDrivers = fleet.drivers.filter(d => d.status === "Active");
+  const { vehicles, drivers, trips, addTrip, completeTrip } = fleet;
 
-  const handleCreateTrip = async () => {
+  const availableVehicles = vehicles.filter((v) => v.status === "Available");
+  const activeDrivers = drivers.filter((d) => d.status === "Active");
+
+  const handleCreateTrip = () => {
     if (!vehicleId || !driverId || !cargoWeight) return;
-    await fleet.addTrip({ vehicleId, driverId, cargoWeight: Number(cargoWeight) });
-    setVehicleId(""); setDriverId(""); setCargoWeight("");
+
+    addTrip({
+      id: Date.now().toString(),
+      vehicleId,
+      driverId,
+      cargoWeight: Number(cargoWeight),
+      status: "Dispatched",
+    });
+
+    setVehicleId("");
+    setDriverId("");
+    setCargoWeight("");
   };
 
-  const handleCompleteTrip = async (tripId: string) => {
-    await fleet.completeTrip(tripId);
+  const handleCompleteTrip = (tripId: string) => {
+    completeTrip(tripId);
   };
 
   return (
-    <div className="container my-4">
-      <h3 className="mb-4 text-primary">Dispatch Center</h3>
+    <div className="container-fluid">
 
-      {/* Create Trip */}
-      <div className="card p-3 mb-4 shadow-sm d-flex flex-wrap gap-2">
-        <select className="form-select" value={vehicleId} onChange={e => setVehicleId(e.target.value)}>
-          <option value="">Select Vehicle</option>
-          {availableVehicles.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}
-        </select>
+      <h3 className="text-info mb-4">Dispatch Center</h3>
 
-        <select className="form-select" value={driverId} onChange={e => setDriverId(e.target.value)}>
-          <option value="">Select Driver</option>
-          {activeDrivers.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
-        </select>
+      {/* CREATE TRIP */}
 
-        <input
-          className="form-control"
-          type="number"
-          placeholder="Cargo Weight"
-          value={cargoWeight}
-          onChange={e => setCargoWeight(e.target.value)}
-        />
+      <div className="dashboard-card mb-4">
 
-        <button className="btn btn-primary" onClick={handleCreateTrip}>Create Trip</button>
+        <h5 className="mb-3">Create Trip</h5>
+
+        <div className="row g-3">
+
+          <div className="col-md-3">
+            <select
+              className="form-select"
+              value={vehicleId}
+              onChange={(e) => setVehicleId(e.target.value)}
+            >
+              <option value="">Select Vehicle</option>
+
+              {availableVehicles.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
+              ))}
+
+            </select>
+          </div>
+
+          <div className="col-md-3">
+            <select
+              className="form-select"
+              value={driverId}
+              onChange={(e) => setDriverId(e.target.value)}
+            >
+              <option value="">Select Driver</option>
+
+              {activeDrivers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+
+            </select>
+          </div>
+
+          <div className="col-md-3">
+            <input
+              className="form-control"
+              type="number"
+              placeholder="Cargo Weight"
+              value={cargoWeight}
+              onChange={(e) => setCargoWeight(e.target.value)}
+            />
+          </div>
+
+          <div className="col-md-3">
+            <button
+              className="btn btn-info w-100"
+              onClick={handleCreateTrip}
+            >
+              Create Trip
+            </button>
+          </div>
+
+        </div>
+
       </div>
 
-      {/* Trips Table */}
-      <div className="card p-3 shadow-sm table-responsive">
-        {fleet.trips.length === 0 ? <p>No trips scheduled</p> : (
-          <table className="table table-hover align-middle">
-            <thead className="table-dark">
+      {/* TRIPS TABLE */}
+
+      <div className="dashboard-card table-responsive">
+
+        {trips.length === 0 ? (
+          <p className="text-secondary">No trips scheduled</p>
+        ) : (
+
+          <table className="table table-dark table-hover align-middle">
+
+            <thead>
               <tr>
                 <th>Vehicle</th>
                 <th>Driver</th>
@@ -62,28 +126,58 @@ const Trips = () => {
                 <th>Action</th>
               </tr>
             </thead>
+
             <tbody>
-              {fleet.trips.map(trip => (
-                <tr key={trip._id}>
-                  <td>{fleet.vehicles.find(v => v._id === trip.vehicleId)?.name}</td>
-                  <td>{fleet.drivers.find(d => d._id === trip.driverId)?.name}</td>
-                  <td>{trip.cargoWeight}</td>
+
+              {trips.map((trip) => (
+                <tr key={trip.id}>
+
                   <td>
-                    <span className={`badge ${
-                      trip.status === "Dispatched" ? "bg-warning" : "bg-success"
-                    }`}>{trip.status}</span>
+                    {vehicles.find((v) => v.id === trip.vehicleId)?.name}
                   </td>
+
                   <td>
+                    {drivers.find((d) => d.id === trip.driverId)?.name}
+                  </td>
+
+                  <td>{trip.cargoWeight} kg</td>
+
+                  <td>
+                    <span
+                      className={`badge ${
+                        trip.status === "Dispatched"
+                          ? "bg-warning text-dark"
+                          : "bg-success"
+                      }`}
+                    >
+                      {trip.status}
+                    </span>
+                  </td>
+
+                  <td>
+
                     {trip.status === "Dispatched" && (
-                      <button className="btn btn-sm btn-success" onClick={() => handleCompleteTrip(trip._id)}>Complete</button>
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => handleCompleteTrip(trip.id)}
+                      >
+                        Complete
+                      </button>
                     )}
+
                   </td>
+
                 </tr>
               ))}
+
             </tbody>
+
           </table>
+
         )}
+
       </div>
+
     </div>
   );
 };

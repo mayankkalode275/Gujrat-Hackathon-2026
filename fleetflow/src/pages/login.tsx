@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("Manager");
   const [error, setError] = useState("");
 
   const roleRoutes: Record<string, string> = {
@@ -23,27 +24,31 @@ const Login = () => {
     }
   }, [user, navigate]);
 
-  const handleLogin = async () => {
-    try {
-      if (!email || !password) {
-        setError("Please enter email and password");
-        return;
-      }
-
-      await login({ email, password });
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+  const handleLogin = () => {
+    if (!name || !email) {
+      setError("Please enter name and email");
+      return;
     }
+
+    login({
+      name,
+      email,
+      role: role as any,
+    });
   };
 
   return (
     <div className="login-bg d-flex justify-content-center align-items-center">
+
       <div className="login-container">
 
-        {/* LEFT SIDE - LOGIN */}
+        {/* LEFT LOGIN PANEL */}
+
         <div className="login-panel text-light">
 
-          <h3 className="text-info fw-bold mb-3">FleetFlow Login</h3>
+          <h3 className="text-info fw-bold mb-3">
+            FleetFlow Login
+          </h3>
 
           {error && (
             <div className="alert alert-danger text-center py-2">
@@ -52,9 +57,18 @@ const Login = () => {
           )}
 
           <div className="mb-3">
+            <label>Name</label>
+            <input
+              className="form-control bg-dark text-light border-secondary"
+              placeholder="Enter name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-3">
             <label>Email</label>
             <input
-              type="email"
               className="form-control bg-dark text-light border-secondary"
               placeholder="Enter email"
               value={email}
@@ -63,14 +77,17 @@ const Login = () => {
           </div>
 
           <div className="mb-3">
-            <label>Password</label>
-            <input
-              type="password"
-              className="form-control bg-dark text-light border-secondary"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <label>Select Role</label>
+            <select
+              className="form-select bg-dark text-light border-secondary"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="Manager">Manager</option>
+              <option value="Dispatcher">Dispatcher</option>
+              <option value="Safety">Safety</option>
+              <option value="Finance">Finance</option>
+            </select>
           </div>
 
           <button
@@ -82,23 +99,24 @@ const Login = () => {
 
         </div>
 
-        {/* RIGHT SIDE - REGISTER CTA */}
+        {/* RIGHT SIDE INFO PANEL */}
+
         <div className="register-panel text-center text-light d-flex flex-column justify-content-center">
 
-          <h4 className="fw-bold mb-3">New Here?</h4>
+          <h4 className="fw-bold mb-3">FleetFlow</h4>
+
           <p className="text-secondary">
-            Create an account to manage fleet operations efficiently.
+            Smart Fleet & Logistics Management System
           </p>
 
-          <Link to="/register">
-            <button className="btn btn-outline-light mt-3 px-4">
-              Create Account
-            </button>
-          </Link>
+          <p className="small text-secondary mt-2">
+            Manage vehicles, drivers, trips and expenses in one place.
+          </p>
 
         </div>
 
       </div>
+
     </div>
   );
 };

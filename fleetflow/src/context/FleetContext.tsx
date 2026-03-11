@@ -1,79 +1,145 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
 import type { ReactNode } from "react";
-import axios from "axios";
 
-interface Vehicle { _id: string; name: string; capacity: number; status: string; }
-interface Driver { _id: string; name: string; licenseExpiry?: string; status: string; }
-interface Trip { _id: string; vehicleId: string; driverId: string; cargoWeight: number; status: string; }
-interface Expense { _id: string; title: string; amount: number; category: string; date: string; }
+/* ================= TYPES ================= */
+
+interface Vehicle {
+  id: string;
+  name: string;
+  capacity: number;
+  status: string;
+}
+
+interface Driver {
+  id: string;
+  name: string;
+  licenseExpiry?: string;
+  status: string;
+}
+
+interface Trip {
+  id: string;
+  vehicleId: string;
+  driverId: string;
+  cargoWeight: number;
+  status: string;
+}
+
+interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  category: string;
+  date: string;
+}
 
 interface FleetContextType {
   vehicles: Vehicle[];
   drivers: Driver[];
   trips: Trip[];
   expenses: Expense[];
-  addDriver: (d: Partial<Driver>) => Promise<void>;
-  deleteDriver: (id: string) => Promise<void>;
-  updateDriverStatus: (id: string, status: string) => Promise<void>;
-  addVehicle: (v: Partial<Vehicle>) => Promise<void>;
-  deleteVehicle: (id: string) => Promise<void>;
-  updateVehicleStatus: (id: string, status: string) => Promise<void>;
-  addTrip: (t: Partial<Trip>) => Promise<void>;
-  completeTrip: (id: string) => Promise<void>;
-  addExpense: (e: Partial<Expense>) => Promise<void>;
-  deleteExpense: (id: string) => Promise<void>;
+
+  addDriver: (d: Driver) => void;
+  deleteDriver: (id: string) => void;
+  updateDriverStatus: (id: string, status: string) => void;
+
+  addVehicle: (v: Vehicle) => void;
+  deleteVehicle: (id: string) => void;
+  updateVehicleStatus: (id: string, status: string) => void;
+
+  addTrip: (t: Trip) => void;
+  completeTrip: (id: string) => void;
+
+  addExpense: (e: Expense) => void;
+  deleteExpense: (id: string) => void;
 }
+
+/* ================= CONTEXT ================= */
 
 export const FleetContext = createContext<FleetContextType | undefined>(undefined);
 
+/* ================= PROVIDER ================= */
+
 export const FleetProvider = ({ children }: { children: ReactNode }) => {
+  
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const API_BASE = "http://localhost:5000/api";
+  /* ================= DRIVERS ================= */
 
-  const fetchAll = async () => {
-    const [vRes, dRes, tRes, eRes] = await Promise.all([
-      axios.get(`${API_BASE}/vehicles`),
-      axios.get(`${API_BASE}/drivers`),
-      axios.get(`${API_BASE}/trips`),
-      axios.get(`${API_BASE}/expenses/fuel`),
-    ]);
-    setVehicles(vRes.data);
-    setDrivers(dRes.data);
-    setTrips(tRes.data);
-    setExpenses(eRes.data);
+  const addDriver = (driver: Driver) => {
+    setDrivers(prev => [...prev, driver]);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  const deleteDriver = (id: string) => {
+    setDrivers(prev => prev.filter(d => d.id !== id));
+  };
 
-  // Drivers
-  const addDriver = async (d: Partial<Driver>) => { await axios.post(`${API_BASE}/drivers`, d); await fetchAll(); };
-  const deleteDriver = async (id: string) => { await axios.delete(`${API_BASE}/drivers/${id}`); await fetchAll(); };
-  const updateDriverStatus = async (id: string, status: string) => { await axios.put(`${API_BASE}/drivers/${id}`, { status }); await fetchAll(); };
+  const updateDriverStatus = (id: string, status: string) => {
+    setDrivers(prev =>
+      prev.map(d => d.id === id ? { ...d, status } : d)
+    );
+  };
 
-  // Vehicles
-  const addVehicle = async (v: Partial<Vehicle>) => { await axios.post(`${API_BASE}/vehicles`, v); await fetchAll(); };
-  const deleteVehicle = async (id: string) => { await axios.delete(`${API_BASE}/vehicles/${id}`); await fetchAll(); };
-  const updateVehicleStatus = async (id: string, status: string) => { await axios.put(`${API_BASE}/vehicles/${id}`, { status }); await fetchAll(); };
+  /* ================= VEHICLES ================= */
 
-  // Trips
-  const addTrip = async (t: Partial<Trip>) => { await axios.post(`${API_BASE}/trips`, t); await fetchAll(); };
-  const completeTrip = async (id: string) => { await axios.put(`${API_BASE}/trips/${id}/complete`); await fetchAll(); };
+  const addVehicle = (vehicle: Vehicle) => {
+    setVehicles(prev => [...prev, vehicle]);
+  };
 
-  // Expenses
-  const addExpense = async (e: Partial<Expense>) => { await axios.post(`${API_BASE}/expenses/fuel`, e); await fetchAll(); };
-  const deleteExpense = async (id: string) => { await axios.delete(`${API_BASE}/expenses/fuel/${id}`); await fetchAll(); };
+  const deleteVehicle = (id: string) => {
+    setVehicles(prev => prev.filter(v => v.id !== id));
+  };
+
+  const updateVehicleStatus = (id: string, status: string) => {
+    setVehicles(prev =>
+      prev.map(v => v.id === id ? { ...v, status } : v)
+    );
+  };
+
+  /* ================= TRIPS ================= */
+
+  const addTrip = (trip: Trip) => {
+    setTrips(prev => [...prev, trip]);
+  };
+
+  const completeTrip = (id: string) => {
+    setTrips(prev =>
+      prev.map(t => t.id === id ? { ...t, status: "Completed" } : t)
+    );
+  };
+
+  /* ================= EXPENSES ================= */
+
+  const addExpense = (expense: Expense) => {
+    setExpenses(prev => [...prev, expense]);
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== id));
+  };
 
   return (
-    <FleetContext.Provider value={{
-      vehicles, drivers, trips, expenses,
-      addDriver, deleteDriver, updateDriverStatus,
-      addVehicle, deleteVehicle, updateVehicleStatus,
-      addTrip, completeTrip, addExpense, deleteExpense
-    }}>
+    <FleetContext.Provider
+      value={{
+        vehicles,
+        drivers,
+        trips,
+        expenses,
+        addDriver,
+        deleteDriver,
+        updateDriverStatus,
+        addVehicle,
+        deleteVehicle,
+        updateVehicleStatus,
+        addTrip,
+        completeTrip,
+        addExpense,
+        deleteExpense
+      }}
+    >
       {children}
     </FleetContext.Provider>
   );

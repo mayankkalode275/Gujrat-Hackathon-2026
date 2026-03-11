@@ -2,21 +2,20 @@ import React, { useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext } from "./context/AuthContext";
 
-import Login from "./pages/login";
-import Register from "./pages/Register"; 
-import Dashboard from "./pages/dashboard";
-import Vehicles from "./pages/vehicles";
-import Drivers from "./pages/drivers";
-import Trips from "./pages/trips";
-import Maintenance from "./pages/maintenance";
-import Expenses from "./pages/expenses";
-import Analytics from "./pages/analytics";
-import Layout from "./components/layout";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Vehicles from "./pages/Vehicles";
+import Drivers from "./pages/Drivers";
+import Trips from "./pages/Trips";
+import Maintenance from "./pages/Maintenance";
+import Expenses from "./pages/Expenses";
+import Analytics from "./pages/Analytics";
+import Layout from "./components/Layout";
 
 function App() {
   const auth = useContext(AuthContext);
 
-  // ✅ Role Protected Route Component
   const RoleProtectedRoute = ({
     children,
     allowedRoles,
@@ -24,9 +23,12 @@ function App() {
     children: React.ReactNode;
     allowedRoles: string[];
   }) => {
-    if (!auth?.user?.role) return <Navigate to="/" replace />;
-    if (!allowedRoles.includes(auth.user.role))
+    if (!auth?.user) return <Navigate to="/" replace />;
+
+    if (!allowedRoles.includes(auth.user.role)) {
       return <Navigate to="/dashboard" replace />;
+    }
+
     return <>{children}</>;
   };
 
@@ -34,19 +36,29 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* ================= PUBLIC ROUTES ================= */}
-        <Route path="/" element={auth?.user ? <Navigate to="/dashboard" /> : <Login />} />
-        <Route path="/register" element={auth?.user ? <Navigate to="/dashboard" /> : <Register />} />
+        {/* PUBLIC ROUTES */}
 
-        {/* ================= PROTECTED ROUTES ================= */}
+        <Route
+          path="/"
+          element={auth?.user ? <Navigate to="/dashboard" /> : <Login />}
+        />
+
+        <Route
+          path="/register"
+          element={auth?.user ? <Navigate to="/dashboard" /> : <Register />}
+        />
+
+        {/* PROTECTED ROUTES */}
+
         <Route
           path="/"
           element={auth?.user ? <Layout /> : <Navigate to="/" replace />}
         >
+
           <Route
             path="dashboard"
             element={
-              <RoleProtectedRoute allowedRoles={["Manager", "Dispatcher", "Safety", "Finance"]}>
+              <RoleProtectedRoute allowedRoles={["Manager","Dispatcher","Safety","Finance"]}>
                 <Dashboard />
               </RoleProtectedRoute>
             }
@@ -55,7 +67,7 @@ function App() {
           <Route
             path="vehicles"
             element={
-              <RoleProtectedRoute allowedRoles={["Manager", "Dispatcher"]}>
+              <RoleProtectedRoute allowedRoles={["Manager","Dispatcher","Finance"]}>
                 <Vehicles />
               </RoleProtectedRoute>
             }
@@ -64,7 +76,7 @@ function App() {
           <Route
             path="drivers"
             element={
-              <RoleProtectedRoute allowedRoles={["Manager", "Safety"]}>
+              <RoleProtectedRoute allowedRoles={["Manager","Safety","Dispatcher","Finance"]}>
                 <Drivers />
               </RoleProtectedRoute>
             }
@@ -73,7 +85,7 @@ function App() {
           <Route
             path="trips"
             element={
-              <RoleProtectedRoute allowedRoles={["Dispatcher"]}>
+              <RoleProtectedRoute allowedRoles={["Dispatcher","Manager","Finance"]}>
                 <Trips />
               </RoleProtectedRoute>
             }
@@ -82,7 +94,7 @@ function App() {
           <Route
             path="maintenance"
             element={
-              <RoleProtectedRoute allowedRoles={["Manager"]}>
+              <RoleProtectedRoute allowedRoles={["Manager","Finance"]}>
                 <Maintenance />
               </RoleProtectedRoute>
             }
@@ -91,7 +103,7 @@ function App() {
           <Route
             path="expenses"
             element={
-              <RoleProtectedRoute allowedRoles={["Finance"]}>
+              <RoleProtectedRoute allowedRoles={["Finance","Manager"]}>
                 <Expenses />
               </RoleProtectedRoute>
             }
@@ -100,14 +112,16 @@ function App() {
           <Route
             path="analytics"
             element={
-              <RoleProtectedRoute allowedRoles={["Manager", "Finance"]}>
+              <RoleProtectedRoute allowedRoles={["Manager","Finance"]}>
                 <Analytics />
               </RoleProtectedRoute>
             }
           />
+
         </Route>
 
-        {/* Catch-all route */}
+        {/* FALLBACK */}
+
         <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>

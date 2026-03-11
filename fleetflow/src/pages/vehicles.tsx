@@ -3,45 +3,86 @@ import { FleetContext } from "../context/FleetContext";
 
 const Vehicles = () => {
   const fleet = useContext(FleetContext);
-  const [name, setName] = useState("");
-  const [capacity, setCapacity] = useState(0);
 
-  if (!fleet) return <div>Loading...</div>;
+  const [name, setName] = useState("");
+  const [capacity, setCapacity] = useState("");
+
+  if (!fleet) {
+    return <div className="p-4 text-light">Loading vehicles...</div>;
+  }
+
   const { vehicles, addVehicle, deleteVehicle } = fleet;
 
-  const handleAddVehicle = async () => {
-    if (!name || capacity <= 0) return;
-    await addVehicle({ name, capacity, status: "Available" });
-    setName(""); setCapacity(0);
+  const handleAddVehicle = () => {
+    if (!name || !capacity) return;
+
+    addVehicle({
+      id: Date.now().toString(),
+      name,
+      capacity: Number(capacity),
+      status: "Available",
+    });
+
+    setName("");
+    setCapacity("");
   };
 
   return (
-    <div className="container my-4">
-      <h3 className="mb-4 text-primary">Vehicle Registry</h3>
+    <div className="container-fluid">
 
-      {/* Add Vehicle */}
-      <div className="card p-3 mb-4 shadow-sm d-flex flex-wrap gap-2">
-        <input
-          className="form-control"
-          placeholder="Vehicle Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-        <input
-          className="form-control"
-          type="number"
-          placeholder="Capacity (kg)"
-          value={capacity}
-          onChange={e => setCapacity(Number(e.target.value))}
-        />
-        <button className="btn btn-primary" onClick={handleAddVehicle}>Add Vehicle</button>
+      <h3 className="text-info mb-4">Vehicle Registry</h3>
+
+      {/* ADD VEHICLE */}
+
+      <div className="dashboard-card mb-4">
+
+        <h5 className="mb-3">Register New Vehicle</h5>
+
+        <div className="row g-3">
+
+          <div className="col-md-5">
+            <input
+              className="form-control"
+              placeholder="Vehicle Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <input
+              className="form-control"
+              type="number"
+              placeholder="Capacity (kg)"
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+            />
+          </div>
+
+          <div className="col-md-3">
+            <button
+              className="btn btn-info w-100"
+              onClick={handleAddVehicle}
+            >
+              Add Vehicle
+            </button>
+          </div>
+
+        </div>
+
       </div>
 
-      {/* Vehicles Table */}
-      <div className="card p-3 shadow-sm table-responsive">
-        {vehicles.length === 0 ? <p>No vehicles registered</p> : (
-          <table className="table table-hover align-middle">
-            <thead className="table-dark">
+      {/* VEHICLE TABLE */}
+
+      <div className="dashboard-card table-responsive">
+
+        {vehicles.length === 0 ? (
+          <p className="text-secondary">No vehicles registered</p>
+        ) : (
+
+          <table className="table table-dark table-hover align-middle">
+
+            <thead>
               <tr>
                 <th>Name</th>
                 <th>Capacity</th>
@@ -49,29 +90,50 @@ const Vehicles = () => {
                 <th>Action</th>
               </tr>
             </thead>
+
             <tbody>
-              {vehicles.map(v => (
-                <tr key={v._id}>
+
+              {vehicles.map((v) => (
+                <tr key={v.id}>
+
                   <td>{v.name}</td>
+
                   <td>{v.capacity} kg</td>
+
                   <td>
-                    <span className={`badge ${
-                      v.status === "Available" ? "bg-success" :
-                      v.status === "In Shop" ? "bg-warning" :
-                      "bg-info"
-                    }`}>
+                    <span
+                      className={`badge ${
+                        v.status === "Available"
+                          ? "bg-success"
+                          : v.status === "In Shop"
+                          ? "bg-warning text-dark"
+                          : "bg-info"
+                      }`}
+                    >
                       {v.status}
                     </span>
                   </td>
+
                   <td>
-                    <button className="btn btn-sm btn-danger" onClick={() => deleteVehicle(v._id)}>Delete</button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => deleteVehicle(v.id)}
+                    >
+                      Delete
+                    </button>
                   </td>
+
                 </tr>
               ))}
+
             </tbody>
+
           </table>
+
         )}
+
       </div>
+
     </div>
   );
 };

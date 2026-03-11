@@ -1,38 +1,33 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 
 type Role = "Manager" | "Dispatcher" | "Safety" | "Finance";
 
 const Register = () => {
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>("Manager");
   const [error, setError] = useState("");
 
-  const handleRegister = async () => {
-    try {
-      if (!name || !email || !password) {
-        setError("All fields are required");
-        return;
-      }
-
-      await register({ name, email, password, role });
-
-      alert("Registration successful!");
-      navigate("/");
-
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed");
+  const handleRegister = () => {
+    if (!name || !email) {
+      setError("All fields are required");
+      return;
     }
+
+    const newUser = { name, email, role };
+
+    localStorage.setItem("fleetflowUser", JSON.stringify(newUser));
+
+    alert("Registration successful!");
+    navigate("/");
   };
 
   return (
     <div className="login-bg d-flex justify-content-center align-items-center">
+
       <div className="glass-card text-light">
 
         <h3 className="text-info text-center mb-4">
@@ -60,16 +55,6 @@ const Register = () => {
             className="form-control bg-dark text-light"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-3">
-          <label>Password</label>
-          <input
-            type="password"
-            className="form-control bg-dark text-light"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
@@ -104,6 +89,7 @@ const Register = () => {
         </div>
 
       </div>
+
     </div>
   );
 };

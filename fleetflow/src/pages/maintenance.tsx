@@ -3,43 +3,86 @@ import { FleetContext } from "../context/FleetContext";
 
 const Maintenance = () => {
   const fleet = useContext(FleetContext);
+
   const [selectedId, setSelectedId] = useState("");
 
-  if (!fleet) return <div>Loading...</div>;
+  if (!fleet) {
+    return <div className="p-4 text-light">Loading maintenance data...</div>;
+  }
 
   const { vehicles, updateVehicleStatus } = fleet;
 
   const availableVehicles = vehicles.filter(v => v.status === "Available");
   const maintenanceVehicles = vehicles.filter(v => v.status === "In Shop");
 
-  const sendToMaintenance = async () => {
+  const sendToMaintenance = () => {
     if (!selectedId) return;
-    await updateVehicleStatus(selectedId, "In Shop");
+
+    updateVehicleStatus(selectedId, "In Shop");
     setSelectedId("");
   };
 
-  const completeMaintenance = async (id: string) => {
-    await updateVehicleStatus(id, "Available");
+  const completeMaintenance = (id: string) => {
+    updateVehicleStatus(id, "Available");
   };
 
   return (
-    <div className="container my-4">
-      <h3 className="mb-4 text-primary">Maintenance Center</h3>
+    <div className="container-fluid">
+
+      <h3 className="text-info mb-4">Maintenance Center</h3>
 
       {/* Send to Maintenance */}
-      <div className="card p-3 mb-4 shadow-sm d-flex flex-wrap gap-2">
-        <select className="form-select flex-grow-1" value={selectedId} onChange={e => setSelectedId(e.target.value)}>
-          <option value="">Select Vehicle</option>
-          {availableVehicles.map(v => <option key={v._id} value={v._id}>{v.name} ({v.capacity} kg)</option>)}
-        </select>
-        <button className="btn btn-warning" onClick={sendToMaintenance} disabled={!selectedId}>Move to Maintenance</button>
+
+      <div className="dashboard-card mb-4">
+
+        <h5 className="mb-3">Send Vehicle to Maintenance</h5>
+
+        <div className="row g-3">
+
+          <div className="col-md-9">
+            <select
+              className="form-select"
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+            >
+              <option value="">Select Vehicle</option>
+
+              {availableVehicles.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name} ({v.capacity} kg)
+                </option>
+              ))}
+
+            </select>
+          </div>
+
+          <div className="col-md-3">
+            <button
+              className="btn btn-warning w-100"
+              onClick={sendToMaintenance}
+              disabled={!selectedId}
+            >
+              Move to Maintenance
+            </button>
+          </div>
+
+        </div>
+
       </div>
 
       {/* Vehicles in Maintenance */}
-      <div className="card p-3 shadow-sm table-responsive">
-        {maintenanceVehicles.length === 0 ? <p>No vehicles currently in maintenance</p> : (
-          <table className="table table-hover align-middle">
-            <thead className="table-dark">
+
+      <div className="dashboard-card table-responsive">
+
+        {maintenanceVehicles.length === 0 ? (
+          <p className="text-secondary">
+            No vehicles currently in maintenance
+          </p>
+        ) : (
+
+          <table className="table table-dark table-hover align-middle">
+
+            <thead>
               <tr>
                 <th>Name</th>
                 <th>Capacity</th>
@@ -47,21 +90,42 @@ const Maintenance = () => {
                 <th>Action</th>
               </tr>
             </thead>
+
             <tbody>
-              {maintenanceVehicles.map(v => (
-                <tr key={v._id}>
+
+              {maintenanceVehicles.map((v) => (
+                <tr key={v.id}>
+
                   <td>{v.name}</td>
+
                   <td>{v.capacity} kg</td>
-                  <td><span className="badge bg-warning">In Shop</span></td>
+
                   <td>
-                    <button className="btn btn-sm btn-success" onClick={() => completeMaintenance(v._id)}>Mark Completed</button>
+                    <span className="badge bg-warning text-dark">
+                      In Shop
+                    </span>
                   </td>
+
+                  <td>
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={() => completeMaintenance(v.id)}
+                    >
+                      Mark Completed
+                    </button>
+                  </td>
+
                 </tr>
               ))}
+
             </tbody>
+
           </table>
+
         )}
+
       </div>
+
     </div>
   );
 };
